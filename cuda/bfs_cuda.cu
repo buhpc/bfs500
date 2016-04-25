@@ -200,7 +200,7 @@ int main() {
 	} while(over);
 
 	// cudaPrintfDisplay (stdout, true);
-	//cudaPrintfEnd ();
+	//mcudaPrintfEnd ();
 
 	// Stop and destroy the timer
 	cudaEventRecord(stop,0);
