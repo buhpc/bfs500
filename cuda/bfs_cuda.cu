@@ -13,9 +13,9 @@
 #include <cstdlib>
 #include <math.h>
 #include <cuda.h>
-#include "cuPrintf.cuh"
 #include "cuPrintf.cu"
-#include <bfs_kernel.cu>
+#include "cuPrintf.cuh"
+#include "bfs_cuda.cuh"
 
 #define VERTICES 10000
 #define EDGES 10000
@@ -30,6 +30,8 @@ int main() {
 	// GPU Timing variables
 	cudaEvent_t start, stop, start1, stop1;
 	float elapsed_gpu, elapsed_gpu1;
+	// Select GPU
+    CUDA_SAFE_CALL(cudaSetDevice(2));
 
 	Node* graph_nodes = (Node*) malloc(sizeof(Node)*VERTICES);
 	int* graph_edge;
