@@ -15,6 +15,7 @@
 #include <cuda.h>
 #include "cuPrintf.cuh"
 #include "cuPrintf.cu"
+#include <bfs_kernel.cu>
 
 #define VERTICES 10000
 #define EDGES 10000
@@ -23,62 +24,212 @@
 #define GIG 1000000000
 #define CPG 2.60            // Cycles per GHz -- Adjust to your computer
 
-#include "bfs_serial.h"
-
 using namespace std;
 
 int main() {
-	int i;
-	int j;
+	// GPU Timing variables
+	cudaEvent_t start, stop, start1, stop1;
+	float elapsed_gpu, elapsed_gpu1;
 
-	srand(time(NULL));
+	Node* graph_nodes = (Node*) malloc(sizeof(Node)*VERTICES);
+	int* graph_edge;
 
-	// graph represents the matrix
-	int **graph = new int*[VERTICES];
-	for (i = 0; i < VERTICES; i++) {	
-    	graph[i] = new int[VERTICES]; 
-  	}
+	//Generate Varibles to check
+	bool *graph_mask;
+	if ((graph_mask = (bool*) malloc(sizeof(bool)*VERTICES))==NULL)
+	{
+		printf("Could not allocate memory for graph_mask\n");
+		exit(1);
+	}
 
-	int size[VERTICES] = {};
+	bool *updating_graph_mask;
+	if ((updating_graph_mask = (bool*) malloc(sizeof(bool)*VERTICES))==NULL)
+	{
+		printf("Could not allocate memory for graph_mask\n");
+		exit(1);
+	}
+
+	bool *graph_visited;
+	if ((graph_visited = (bool*) malloc(sizeof(bool)*VERTICES))==NULL)
+	{
+		printf("Could not allocate memory for graph_mask\n");
+		exit(1);
+	}
+
+	bool *h_graph_visited;
+	if ((h_graph_visited = (bool*) malloc(sizeof(bool)*VERTICES))==NULL)
+	{
+		printf("Could not allocate memory for graph_mask\n");
+		exit(1);
+	}
+
+	int i = 0;
+	int j = 0;
+	int len;
+
+	for (i = 0; i < VERTICES; i++) {
+		graph_nodes[i].no_of_edges = (rand()%(EDGES))+1;
+
+		if (i == 0) {
+			graph_nodes[i].start= i;
+			len = graph_nodes[i].no_of_edges;
+			graph_edge = (int *) malloc(sizeof(int)*len);
+			if ((graph_edge = (int *) malloc(sizeof(int)*len)) == NULL) {
+				printf("Could not allocate memory for graph_edge : %d\n", i);
+				exit(1);
+			} 
+		} else {
+			graph_nodes[i].start= graph_nodes[i-1].start + graph_nodes[i-1].no_of_edges;
+			len += graph_nodes[i].no_of_edges;
+			graph_edge = (int *) realloc(graph_edge, sizeof(int)*len);
+			if ((graph_edge = (int *) realloc(graph_edge, sizeof(int)*len)) == NULL) {
+				printf("Could not reallocate memory for graph_edge: %d\n", i);
+				exit(1);
+			} 
+		}
+	}
+
+	graph_mask[i] = false;
+	updating_graph_mask[i] = false;
+	graph_visited[i] = false;
+	h_graph_visited[i] = false;
+
+	for(j = graph_nodes[i].start; j < (graph_nodes[i].no_of_edges+graph_nodes[i].start); j++) {
+		int linkedVertex = rand()%VERTICES;
+		graph_edge[j] = rand()%VERTICES;
+	}
+
+	// Create the cuda events
+	cudaEventCreate(&start1);
+	cudaEventCreate(&stop1);
+	// Record event on the default stream
+	cudaEventRecord(start1, 0);
+
+	int vertex;
+	for (vertex = 0; vertex < VERTICES; vertex++) {
+	    if(!h_graph_visited[vertex]) {   		
+			bfs(graph_nodes, graph_edge, presentVertex, h_graph_visited);
+		}
+	}
+
+	// Stop and destroy the timer
+	cudaEventRecord(stop1,0);
+	cudaEventSynchronize(stop1);
+	cudaEventElapsedTime(&elapsed_gpu1, start1, stop1);
+	printf("\nCPU time: %f (msec)\n", elapsed_gpu1);
+	cudaEventDestroy(start1);
+	cudaEventDestroy(stop1);
+
+	int source = 0;
+
+	//set the source node as true in the mask
+	graph_mask[source]=true;
+	graph_visited[source]=true;
+
+	//Copy the Graph to device memory
+	Node *d_graph;
+	CUDA_SAFE_CALL(cudaMalloc( (void**) &d_graph, sizeof(Node) *VERTICES)) ;
+	CUDA_SAFE_CALL(cudaMemcpy( d_graph, graph_nodes, sizeof(Node) *VERTICES, cudaMemcpyHostToDevice));
+
+	//Copy the Edge List to device Memory
+	int* d_edge;
+	cudaMalloc( (void**) &d_edge, sizeof(int)*(len)) ;
+	cudaMemcpy( d_edge, graph_edge, sizeof(int)*(len), cudaMemcpyHostToDevice) ;
+
+	//Copy the Mask to device memory
+	bool* d_graph_mask;
+	CUDA_SAFE_CALL(cudaMalloc( (void**) &d_graph_mask, sizeof(bool)*VERTICES)) ;
+	CUDA_SAFE_CALL(cudaMemcpy( d_graph_mask, graph_mask, sizeof(bool)*VERTICES, cudaMemcpyHostToDevice));
+
+	bool* d_updating_graph_mask;
+	CUDA_SAFE_CALL(cudaMalloc( (void**) &d_updating_graph_mask, sizeof(bool)*VERTICES)) ;
+	CUDA_SAFE_CALL(cudaMemcpy( d_updating_graph_mask, updating_graph_mask, sizeof(bool)*VERTICES, cudaMemcpyHostToDevice)) ;
+
+	//Copy the Visited nodes array to device memory
+	bool* d_graph_visited;
+	CUDA_SAFE_CALL(cudaMalloc( (void**) &d_graph_visited, sizeof(bool)*VERTICES)) ;
+	CUDA_SAFE_CALL(cudaMemcpy( d_graph_visited, graph_visited, sizeof(bool)*VERTICES, cudaMemcpyHostToDevice)) ;
+
+	//make a bool to check if the execution is over
+	bool *d_over;
+	CUDA_SAFE_CALL(cudaMalloc( (void**) &d_over, sizeof(bool)));
+
+	printf("Copied Everything to GPU memory\n");
 	
-	// visited contains whether a vertex has been visited
-	int *visited = new int[VERTICES];
+	int num_of_blocks = 1;
+	int num_of_threads_per_block = VERTICES;
 
-	// Generate the graphs
-	for (i = 0; i < VERTICES; i++) {
-		size[i] = rand() % EDGES;
-
-		// Load the graph with the vertices
-		for (j = 0; j < size[i]; j++) {
-			int vertex = rand() % VERTICES;
-			graph[i][j] = vertex;
-		}
+	//Make execution Parameters according to the number of nodes
+	//Distribute threads across multiple Blocks if necessary
+	if(VERTICES > MAX_THREADS_PER_BLOCK)
+	{
+		num_of_blocks = (int)ceil(VERTICES/(double)MAX_THREADS_PER_BLOCK); 
+		num_of_threads_per_block = MAX_THREADS_PER_BLOCK; 
 	}
+	// setup execution parameters
+	dim3  grid( num_of_blocks, 1, 1);
+	dim3  threads( num_of_threads_per_block, 1, 1);
 
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
+	int k=0;
+	printf("Start traversing the tree\n");
+	bool over;
+	//Call the Kernel untill all the elements of Frontier are not false
 
-	// Breadth first search
-	for (i = 0; i < VERTICES; i++) {
-		if (!visited[i]) {
-			bfs(graph, size, i, visited);
-		}
-	}
+	// Create the cuda events
+	cudaEventCreate(&start);
+	cudaEventCreate(&stop);
+	// Record event on the default stream
+	cudaEventRecord(start, 0);
+	
+	// cudaPrintfInit ();
+	do {
+		//if no thread changes this value then the loop stops
+		over=false;
+		cudaMemcpy( d_over, &over, sizeof(bool), cudaMemcpyHostToDevice) ;
+		
+		Kernel<<< grid, threads, 0 >>>( d_graph,d_edge, d_graph_mask, d_updating_graph_mask, d_graph_visited);
+		// check if kernel execution generated and error
 
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time2);
+		Kernel2<<< grid, threads, 0 >>>( d_graph_mask, d_updating_graph_mask, d_graph_visited, d_over);
+		// check if kernel execution generated and error
 
-	elapsedTime = diff(time1, time2);
+		cudaMemcpy( &over, d_over, sizeof(bool), cudaMemcpyDeviceToHost) ;
+		k++;
+	} while(over);
 
-	cout << "Serial BFS" << endl;
-	printf("CPE: %ld\n", (long int)((double)(CPG) * (double)(GIG * elapsedTime.tv_sec + elapsedTime.tv_nsec)));
+	// cudaPrintfDisplay (stdout, true);
+	//cudaPrintfEnd ();
+
+	// Stop and destroy the timer
+	cudaEventRecord(stop,0);
+	cudaEventSynchronize(stop);
+	cudaEventElapsedTime(&elapsed_gpu, start, stop);
+	printf("\nGPU time: %f (msec)\n", elapsed_gpu);
+	cudaEventDestroy(start);
+	cudaEventDestroy(stop);
+
+	printf("Kernel Executed %d times\n",k); 
+	
+	// cleanup memory
+	free( graph_nodes);
+	free( graph_edge);
+	free( graph_mask);
+	free( updating_graph_mask);
+	free( graph_visited);
+	cudaFree(d_graph);
+	cudaFree(d_edge);
+	cudaFree(d_graph_mask);
+	cudaFree(d_updating_graph_mask);
+	cudaFree(d_graph_visited);
 
 	return 0;
 }
 
-void bfs(int** graph, int *size, int vertex, int *visited) {
+void bfs(Node* graph_nodes, int* graph_edge, int vertex, bool* visited) {
 	// double-ended queue
 	deque<int> q;
 
-	visited[vertex] = 1;
+	visited[vertex] = true;
 	q.push_back(vertex);
 
 	while (!q.empty()) {
@@ -86,10 +237,10 @@ void bfs(int** graph, int *size, int vertex, int *visited) {
 		q.pop_front();
 		int i;
 
-		for (i = 0; i < size[vertex]; i++) {
-			if (!visited[graph[vertex][i]]) {
-				visited[graph[vertex][i]] = 1;
-				q.push_back(graph[vertex][i]);
+		for (i = 0; i < graph_nodes[vertex].no_of_edges; i++) {
+			if (!visited[graph_edge[graph_nodes[vertex].start + i]]) {
+				visited[graph_edge[graph_nodes[vertex].start + i]] = true;
+				q.push_back(graph_edge[graph_nodes[vertex].start + i]);
 			}
 		}
 	}
