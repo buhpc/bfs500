@@ -34,10 +34,10 @@ int main() {
 
 	int size[VERTICES] = {};
 	
-	// visited contains visited positions
+	// visited contains whether a vertex has been visited
 	int *visited = new int[VERTICES];
 
-	// Load the graph
+	// Generate the graphs
 	for (i = 0; i < VERTICES; i++) {
 		size[i] = rand() % EDGES;
 
@@ -68,16 +68,17 @@ int main() {
 }
 
 void bfs(int** graph, int *size, int vertex, int *visited) {
-	visited[vertex] = 1;
-
 	// double-ended queue
 	deque<int> q;
+
+	visited[vertex] = 1;
 	q.push_back(vertex);
+
+	int i;
 
 	while (!q.empty()) {
 		vertex = q.front();
 		q.pop_front();
-		int i;
 
 		for (i = 0; i < size[vertex]; i++) {
 			if (!visited[graph[vertex][i]]) {
