@@ -1,5 +1,5 @@
-#ifndef BFS_KERNEL_H
-#define BFS_KERNEL_H
+#ifndef BFS_CUDA_H
+#define BFS_CUDA_H
 
 // Assertion to check for errors
 #define CUDA_SAFE_CALL(ans) { gpuAssert((ans), __FILE__, __LINE__); }
@@ -48,11 +48,11 @@ Kernel2( bool* g_graph_mask, bool *g_updating_graph_mask, bool* g_graph_visited,
 	}
 }
 
-void bfs(Node* graph_nodes, int* graph_edge, int vertex, bool* visited);
-
 struct Node {
 	int start;
 	int no_of_edges;
 };
+
+void bfs(Node* graph_nodes, int* graph_edge, int vertex, bool* visited);
 
 #endif

@@ -34,12 +34,12 @@ int main() {
 	// Select GPU
     CUDA_SAFE_CALL(cudaSetDevice(2));
 
-    printf("Total vertices = %d, Max edges = %d\n", VERTICES, MAX_EDGES);
+    printf("Total vertices = %d, Max edges = %d\n", VERTICES, EDGES);
 
 	Node* graph_nodes = (Node*) malloc(sizeof(Node)*VERTICES);
 	int* graph_edge;
 
-	//Generate Varibles to check
+	// Generate Varibles to check
 	bool *graph_mask;
 	if ((graph_mask = (bool*) malloc(sizeof(bool)*VERTICES))==NULL)
 	{
@@ -113,7 +113,7 @@ int main() {
 	int vertex;
 	for (vertex = 0; vertex < VERTICES; vertex++) {
 	    if(!h_graph_visited[vertex]) {   		
-			bfs(graph_nodes, graph_edge, presentVertex, h_graph_visited);
+			bfs(graph_nodes, graph_edge, vertex, h_graph_visited);
 		}
 	}
 
