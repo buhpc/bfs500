@@ -1,5 +1,5 @@
-#ifndef BFS_CUDA_H
-#define BFS_CUDA_H
+#ifndef _BFS_CUDA_H_
+#define _BFS_CUDA_H_
 
 // Assertion to check for errors
 #define CUDA_SAFE_CALL(ans) { gpuAssert((ans), __FILE__, __LINE__); }
