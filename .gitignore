@@ -3,3 +3,4 @@
 bfs_serial
 bfs_omp
 bfs_cuda
+*.exe
