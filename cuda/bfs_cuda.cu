@@ -34,11 +34,11 @@ int main() {
 	//int i;
 	
 
-	printf("Total vertices = %d, Max edges = %d\n", VERTICES, MAX_EDGES);
+	printf("Total vertices = %d, Max edges = %d\n", VERTICES, EDGES);
 
 	Node* graph_nodes = (Node*) malloc(sizeof(Node)*VERTICES);
 	
-	int* graph_edge; //= (int *) malloc(sizeof(int)*VERTICES*MAX_EDGES);
+	int* graph_edge; //= (int *) malloc(sizeof(int)*VERTICES*EDGES);
 	
 	//Generate Varibles to check
 	bool *graph_mask;
@@ -66,7 +66,7 @@ int main() {
 		printf("Could not allocate memory for graph_mask\n");
 		exit(1);
 	}
-	//for(i=0; i<VERTICES*MAX_EDGES; i++)
+	//for(i=0; i<VERTICES*EDGES; i++)
 	//graph_edge[i] = -1;
 
 	//Generate space for edges
@@ -80,7 +80,7 @@ int main() {
 		
 		//for gpu transfer
 
-		graph_nodes[vertexCounter].no_of_edges = (rand()%(MAX_EDGES))+1;
+		graph_nodes[vertexCounter].no_of_edges = (rand()%(EDGES))+1;
 
 		if(vertexCounter ==0)
 		{
@@ -135,7 +135,7 @@ int main() {
 	    {
 	    	if(!h_graph_visited[presentVertex])
 	    	{   		
-				Bfs(graph_nodes,graph_edge,presentVertex,h_graph_visited);
+				bfs(graph_nodes,graph_edge,presentVertex,h_graph_visited);
 				
 		}
 	    }
