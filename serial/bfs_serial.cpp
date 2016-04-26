@@ -41,7 +41,7 @@ int main() {
 	for (i = 0; i < VERTICES; i++) {
 		size[i] = rand() % EDGES;
 
-		// Load the graph with the vertices
+		// Load the graph with a number of vertices
 		for (j = 0; j < size[i]; j++) {
 			int vertex = rand() % VERTICES;
 			graph[i][j] = vertex;
