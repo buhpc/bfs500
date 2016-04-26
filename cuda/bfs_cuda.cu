@@ -154,7 +154,7 @@ int main() {
 	bool *d_over;
 	CUDA_SAFE_CALL(cudaMalloc( (void**) &d_over, sizeof(bool)));
 
-	printf("Copied Everything to GPU memory\n");
+	printf("Copied everything to GPU memory.\n");
 	
 	int num_of_blocks = 1;
 	int num_of_threads_per_block = VERTICES;
@@ -170,7 +170,7 @@ int main() {
 	dim3 threads( num_of_threads_per_block, 1, 1);
 
 	int k=0;
-	printf("Start traversing the tree\n");
+	printf("Start traversing the tree.\n");
 	bool over;
 	// Call the Kernel until all the elements of Frontier are not false
 
@@ -207,7 +207,7 @@ int main() {
 	cudaEventDestroy(start);
 	cudaEventDestroy(stop);
 
-	printf("Kernel Executed %d times\n",k); 
+	printf("Kernel executed: %d times\n",k); 
 	printf("\nTotal time: %f (msec)\n",  elapsed_gpu1 + elapsed_gpu);	
 
 	// cleanup memory

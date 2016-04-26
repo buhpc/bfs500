@@ -7,12 +7,13 @@
 #include <stdio.h>      /* printf, NULL */
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>
+#include <math.h>
 #include <vector>
 #include <queue>
 #include <omp.h>
 
-#define VERTICES 10000
-#define EDGES 10000
+#define VERTICES 100000
+#define EDGES 100000
 
 #define GIG 1000000000
 #define CPG 2.60            // Cycles per GHz -- Adjust to your computer
@@ -67,6 +68,8 @@ int main() {
 
 	cout << "OpenMP BFS" << endl;
 	printf("CPE: %ld\n", (long int)((double)(CPG) * (double)(GIG * elapsedTime.tv_sec + elapsedTime.tv_nsec)));
+	long ms = (elapsedTime.tv_sec * 1000) + (elapsedTime.tv_nsec / 1.0e6);
+	printf("Time: %ld (msec)\n", ms);
 
 	return 0;
 }
