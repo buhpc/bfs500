@@ -1,5 +1,5 @@
-#ifndef _BFS_CUDA_H_
-#define _BFS_CUDA_H_
+#ifndef BFS_CUDA_H
+#define BFS_CUDA_H
 
 struct Node {
 	int start;
