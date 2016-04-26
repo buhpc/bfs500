@@ -11,8 +11,8 @@
 #include <vector>
 #include <queue>
 
-#define VERTICES 10000
-#define EDGES 20
+#define VERTICES 20000
+#define EDGES 10000
 
 #define GIG 1000000000
 #define CPG 2.60            // Cycles per GHz -- Adjust to your computer
