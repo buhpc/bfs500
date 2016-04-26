@@ -7,27 +7,49 @@
 #include <stdio.h>      /* printf, NULL */
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>
-#include <math.h>
 #include <vector>
 #include <queue>
 #include <omp.h>
 
-#define VERTICES 20000
-#define EDGES 10000
+#define VERTICES 10000
+#define EDGES 1000 
 
 #define GIG 1000000000
-#define CPG 2.60            // Cycles per GHz -- Adjust to your computer
-#define NUM_THREADS 8
+#define CPG 2.90            // Cycles per GHz -- Adjust to your computer
+#define NUM_THREADS 4 //Changed this two 4
+//Only 4 cores on CPU; if NUM_THREADS > num cores, is really slow 
 
 #include "bfs_omp.h"
 
 using namespace std;
 
+
+void populate_random(int **graph, int *size, const int vertices, const int edges) {
+    int i, j;
+    srand(time(NULL));
+
+    for (i = 0; i < vertices; i++) {
+        size[i] = rand() % edges;
+        for (j = 0; j < size[i]; j++) {
+            graph[i][j] = rand() % vertices;
+        }
+    }
+}
+
+
+void populate_known(int **graph, int* size, const int vertices, const int edges) {
+    int i, j;
+
+    for (i = 0; i < vertices; i++) {
+        size[i] = i % edges;
+        for (j = 0; j < size[i]; j++) {
+            graph[i][j] = j % vertices;
+        }
+    }
+}
+
 int main() {
 	int i;
-	int j;
-
-	srand(time(NULL));
 
 	// graph represents the matrix
 	int **graph = new int*[VERTICES];
@@ -41,17 +63,8 @@ int main() {
 	int *visited = new int[VERTICES];
 
 	// Load the graph
-	#pragma omp parallel for
-	for (i = 0; i < VERTICES; i++) {
-		size[i] = rand() % EDGES;
-
-		// Load the graph with the vertices
-		#pragma omp parallel for
-		for (j = 0; j < size[i]; j++) {
-			int vertex = rand() % VERTICES;
-			graph[i][j] = vertex;
-		}
-	}
+        //populate_random(graph, size, VERTICES, EDGES);
+        populate_known(graph, size, VERTICES, EDGES);
 
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
 
@@ -68,8 +81,6 @@ int main() {
 
 	cout << "OpenMP BFS" << endl;
 	printf("CPE: %ld\n", (long int)((double)(CPG) * (double)(GIG * elapsedTime.tv_sec + elapsedTime.tv_nsec)));
-	long ms = (elapsedTime.tv_sec * 1000) + (elapsedTime.tv_nsec / 1.0e6);
-	printf("Time: %ld (msec)\n", ms);
 
 	return 0;
 }
@@ -84,21 +95,21 @@ void bfs(int** graph, int *size, int vertex, int *visited) {
 	deque<int> q;
 	q.push_back(vertex);
 
-	#pragma omp parallel shared(graph, visited, vertex) private(i)
-	{
-		while (!q.empty()) {
-			vertex = q.front();
-			q.pop_front();
-
-			#pragma omp parallel for
-			for (i = 0; i < size[vertex]; i++) {
-				if (!visited[graph[vertex][i]]) {
-					visited[graph[vertex][i]] = 1;
-					#pragma omp critical
-					q.push_back(graph[vertex][i]);
-				}
+	#pragma omp parallel shared(graph, visited, vertex) private(i, q)
+        {	
+	    while (!q.empty()) {
+		vertex = q.front();
+		q.pop_front();
+ 
+		#pragma omp parallel for
+		for (i = 0; i < size[vertex]; i++) {
+			if (!visited[graph[vertex][i]]) {
+				visited[graph[vertex][i]] = 1;
+				#pragma omp critical
+				q.push_back(graph[vertex][i]);
 			}
 		}
+	   }
 	}
 }
 

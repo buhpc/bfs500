@@ -7,25 +7,47 @@
 #include <stdio.h>      /* printf, NULL */
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>
-#include <math.h>
 #include <vector>
 #include <queue>
 
-#define VERTICES 20000
-#define EDGES 10000
+#define VERTICES 1000
+#define EDGES 100 
 
 #define GIG 1000000000
-#define CPG 2.60            // Cycles per GHz -- Adjust to your computer
+#define CPG 2.90            // Cycles per GHz -- Adjust to your computer
 
 #include "bfs_serial.h"
 
 using namespace std;
 
-int main() {
-	int i;
-	int j;
 
-	srand(time(NULL));
+void populate_random(int **graph, int *size, const int vertices, const int edges) {
+    int i, j;
+    srand(time(NULL));
+    
+    for (i = 0; i < vertices; i++) {
+        size[i] = rand() % edges;
+        for (j = 0; j < size[i]; j++) {
+            graph[i][j] = rand() % vertices;
+        }
+    }
+}
+
+
+void populate_known(int **graph, int* size, const int vertices, const int edges) {
+    int i, j;
+
+    for (i = 0; i < vertices; i++) {
+        size[i] = i % edges;
+        for (j = 0; j < size[i]; j++) {
+            graph[i][j] = j % vertices;
+        }
+    }
+}
+
+
+int main() {
+        int i;
 
 	// graph represents the matrix
 	int **graph = new int*[VERTICES];
@@ -39,15 +61,8 @@ int main() {
 	int *visited = new int[VERTICES];
 
 	// Generate the graphs
-	for (i = 0; i < VERTICES; i++) {
-		size[i] = rand() % EDGES;
-
-		// Load the graph with a number of vertices
-		for (j = 0; j < size[i]; j++) {
-			int vertex = rand() % VERTICES;
-			graph[i][j] = vertex;
-		}
-	}
+        //populate_random(graph, size, VERTICES, EDGES);
+        populate_known(graph, size, VERTICES, EDGES);	
 
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
 
@@ -64,8 +79,6 @@ int main() {
 
 	cout << "Serial BFS" << endl;
 	printf("CPE: %ld\n", (long int)((double)(CPG) * (double)(GIG * elapsedTime.tv_sec + elapsedTime.tv_nsec)));
-	long ms = (elapsedTime.tv_sec * 1000) + (elapsedTime.tv_nsec / 1.0e6);
-	printf("Time: %ld (msec)\n", ms);
 
 	return 0;
 }
