@@ -17,7 +17,7 @@
 // #include "cuPrintf.cuh"
 
 #define VERTICES 100000
-#define EDGES 100000
+#define EDGES 10000
 #define MAX_THREADS_PER_BLOCK 256
 
 #define GIG 1000000000
