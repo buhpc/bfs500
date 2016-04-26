@@ -12,8 +12,8 @@
 #include <queue>
 #include <omp.h>
 
-#define VERTICES 100000
-#define EDGES 10000
+#define VERTICES 10000
+#define EDGES 20
 
 #define GIG 1000000000
 #define CPG 2.60            // Cycles per GHz -- Adjust to your computer
