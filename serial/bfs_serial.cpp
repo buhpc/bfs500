@@ -89,6 +89,7 @@ int main() {
                 printf("visited[%d] was %d\n", i, visited[i]);
             }
         }
+
 	return 0;
 }
 

@@ -84,6 +84,8 @@ int main() {
 
 	cout << "OpenMP BFS" << endl;
 	printf("CPE: %ld\n", (long int)((double)(CPG) * (double)(GIG * elapsedTime.tv_sec + elapsedTime.tv_nsec)));
+	long ms = (elapsedTime.tv_sec * 1000) + (elapsedTime.tv_nsec / 1.0e6);		
+ 	printf("Time: %ld (msec)\n", ms);
 
         //Validation - checks that every vertex in tree was visted once
         for (i = 0; i < VERTICES; i++) {
@@ -119,8 +121,8 @@ void bfs(int** graph, int *size, int vertex, int *visited) {
 				q.push_back(next_vertex);
 			}
 		}
-	   }
 	}
+        }
 }
 
 struct timespec diff(struct timespec start, struct timespec end) {
