@@ -32,7 +32,7 @@ int main() {
 	cudaEvent_t start, stop, start1, stop1;
 	float elapsed_gpu, elapsed_gpu1;	
 
-	printf("Number of vertices: %d\n, VERTICES);
+	printf("Number of vertices: %d\n", VERTICES);
 	printf("Max number of edges: %d\n", EDGES);
 
 	Node* graph_nodes = (Node*) malloc(sizeof(Node) * VERTICES);
