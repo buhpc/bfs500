@@ -10,8 +10,8 @@
 #include <vector>
 #include <queue>
 
-#define VERTICES 1000
-#define EDGES 100 
+#define VERTICES 10000
+#define EDGES 10000
 
 #define GIG 1000000000
 #define CPG 2.90            // Cycles per GHz -- Adjust to your computer
@@ -45,9 +45,22 @@ void populate_known(int **graph, int* size, const int vertices, const int edges)
     }
 }
 
+void printGraph(int **graph) {
+	int i;
+
+	for (i = 0; i < VERTICES; i++) {
+    	cout << i << " ";
+    	for (int j = 0; j < VERTICES; j++) {
+    		if (graph[i][j] != 0) {
+    			printf("%d ", graph[i][j]);
+    		}
+    	}
+    	cout << endl;
+    }
+}
 
 int main() {
-        int i;
+    int i;
 
 	// graph represents the matrix
 	int **graph = new int*[VERTICES];
@@ -61,8 +74,8 @@ int main() {
 	int *visited = new int[VERTICES];
 
 	// Generate the graphs
-        //populate_random(graph, size, VERTICES, EDGES);
-        populate_known(graph, size, VERTICES, EDGES);	
+    populate_random(graph, size, VERTICES, EDGES);
+    // populate_known(graph, size, VERTICES, EDGES);	
 
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
 

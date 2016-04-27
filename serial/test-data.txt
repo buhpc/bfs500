@@ -1,0 +1,44 @@
+Serial
+
+Intel(R) Xeon(R) CPU E5-2640 0 @ 2.50GHz
+
+scc1.bu.edu
+vertices 5 10 20
+100 316032 319920 326300
+1000 2444642 2515437 2646415
+10000 13476157 13904405 14550725
+100000 150996437 159080880 170162907
+1000000 1518500552 1574932600 1621938690
+
+4 threads
+vertices 5 10 20
+100 3143047 6278027 5714280
+1000 36720037 59157245 56633437
+10000 38376312 314365495 326253342
+100000 36019557 3419853385 3407656372
+1000000 42014040 33722886452 4073049627
+
+Intel(R) Xeon(R) CPU           X5675  @ 3.07GHz
+
+GPU 256 max threads per block
+vertices 5 10 20
+100
+1000
+10000
+100000
+1000000
+
+CPU time: 0.131392 (msec)     CPU time: 0.131040 (msec)     CPU time: 0.140224 (msec)
+GPU time: 0.249088 (msec)     GPU time: 0.188768 (msec)     GPU time: 0.155520 (msec)
+
+CPU time: 1.188896 (msec)     CPU time: 1.696384 (msec)     CPU time: 1.257472 (msec)
+GPU time: 0.324224 (msec)     GPU time: 0.249536 (msec)     GPU time: 0.228960 (msec)
+
+CPU time: 12.288800 (msec)    CPU time: 13.632608 (msec)    CPU time: 14.021024 (msec)
+GPU time: 0.507968 (msec)     GPU time: 0.354752 (msec)     GPU time: 0.341696 (msec)
+
+CPU time: 143.239395 (msec)   CPU time: 145.514343 (msec)   CPU time: 155.710297 (msec)
+GPU time: 1.047008 (msec)     GPU time: 1.077664 (msec)     GPU time: 1.607136 (msec)
+
+CPU time: 26003.349609 (msec) CPU time: 19981.265625 (msec) CPU time: 6618.611328 (msec)
+GPU time: 9.885120 (msec)     GPU time: 14.263584 (msec)    GPU time: 25.807552 (msec)
