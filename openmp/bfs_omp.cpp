@@ -11,8 +11,8 @@
 #include <queue>
 #include <omp.h>
 
-#define VERTICES 10000
-#define EDGES 1000 
+#define VERTICES 100000
+#define EDGES 10 
 
 #define GIG 1000000000
 #define CPG 2.90            // Cycles per GHz -- Adjust to your computer
@@ -48,6 +48,20 @@ void populate_known(int **graph, int* size, const int vertices, const int edges)
     }
 }
 
+void printGraph(int **graph) {
+	int i;
+
+	for (i = 0; i < VERTICES; i++) {
+    	cout << i << " ";
+    	for (int j = 0; j < VERTICES; j++) {
+    		if (graph[i][j] != 0) {
+    			printf("%d ", graph[i][j]);
+    		}
+    	}
+    	cout << endl;
+    }
+}
+
 int main() {
 	int i;
 
@@ -63,8 +77,10 @@ int main() {
 	int *visited = new int[VERTICES];
 
 	// Load the graph
-        //populate_random(graph, size, VERTICES, EDGES);
-        populate_known(graph, size, VERTICES, EDGES);
+	populate_random(graph, size, VERTICES, EDGES);
+	// populate_known(graph, size, VERTICES, EDGES);
+
+	// printGraph(graph);
 
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
 
