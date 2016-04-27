@@ -27,6 +27,15 @@ int main() {
 	int i;
 	int j;
 
+	// Initialize MPI
+	MPI_Init(&argc, &argv);
+	MPI_Comm comm = MPI_COMM_WORLD;
+
+	int myRank;
+	int numParts;
+	MPI_Comm_rank(comm, &myRank);
+	MPI_Comm_size(comm, &numParts);
+
 	srand(time(NULL));
 
 	// graph represents the matrix
@@ -41,12 +50,10 @@ int main() {
 	int *visited = new int[VERTICES];
 
 	// Load the graph
-	#pragma omp parallel for
 	for (i = 0; i < VERTICES; i++) {
 		size[i] = rand() % EDGES;
 
 		// Load the graph with the vertices
-		#pragma omp parallel for
 		for (j = 0; j < size[i]; j++) {
 			int vertex = rand() % VERTICES;
 			graph[i][j] = vertex;
@@ -82,19 +89,14 @@ void bfs(int** graph, int *size, int vertex, int *visited) {
 	deque<int> q;
 	q.push_back(vertex);
 
-	#pragma omp parallel shared(graph, visited, vertex) private(i)
-	{
-		while (!q.empty()) {
-			vertex = q.front();
-			q.pop_front();
+	while (!q.empty()) {
+		vertex = q.front();
+		q.pop_front();
 
-			#pragma omp parallel for
-			for (i = 0; i < size[vertex]; i++) {
-				if (!visited[graph[vertex][i]]) {
-					visited[graph[vertex][i]] = 1;
-					#pragma omp critical
-					q.push_back(graph[vertex][i]);
-				}
+		for (i = 0; i < size[vertex]; i++) {
+			if (!visited[graph[vertex][i]]) {
+				visited[graph[vertex][i]] = 1;
+				q.push_back(graph[vertex][i]);
 			}
 		}
 	}

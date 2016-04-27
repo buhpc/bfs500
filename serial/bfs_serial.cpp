@@ -79,6 +79,8 @@ int main() {
 
 	cout << "Serial BFS" << endl;
 	printf("CPE: %ld\n", (long int)((double)(CPG) * (double)(GIG * elapsedTime.tv_sec + elapsedTime.tv_nsec)));
+	long ms = (elapsedTime.tv_sec * 1000) + (elapsedTime.tv_nsec / 1.0e6);		
+ 	printf("Time: %ld (msec)\n", ms);
 
 	return 0;
 }
