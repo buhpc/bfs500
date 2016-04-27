@@ -10,11 +10,11 @@
 #include <vector>
 #include <queue>
 
-#define VERTICES 10000
-#define EDGES 10000
+#define VERTICES 1000000
+#define EDGES 10
 
 #define GIG 1000000000
-#define CPG 2.90            // Cycles per GHz -- Adjust to your computer
+#define CPG 3.07            // Cycles per GHz -- Adjust to your computer
 
 #include "bfs_serial.h"
 
@@ -77,7 +77,8 @@ int main() {
     populate_random(graph, size, VERTICES, EDGES);
     // populate_known(graph, size, VERTICES, EDGES);	
 
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
+    clock_gettime(CLOCK_MONOTONIC, &time1);
+	// clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
 
 	// Breadth first search
 	for (i = 0; i < VERTICES; i++) {
@@ -86,14 +87,19 @@ int main() {
 		}
 	}
 
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time2);
+    clock_gettime(CLOCK_MONOTONIC, &time2);
+	// clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time2);
 
-	elapsedTime = diff(time1, time2);
+	// elapsedTime = diff(time1, time2);
 
 	cout << "Serial BFS" << endl;
+	/*
 	printf("CPE: %ld\n", (long int)((double)(CPG) * (double)(GIG * elapsedTime.tv_sec + elapsedTime.tv_nsec)));
 	long ms = (elapsedTime.tv_sec * 1000) + (elapsedTime.tv_nsec / 1.0e6);		
  	printf("Time: %ld (msec)\n", ms);
+ 	*/
+ 	double testTime = timeInSeconds(&time2)-timeInSeconds(&time1);
+    printf("Milliseconds: %lf\n", testTime * 1000.0);
 
 	return 0;
 }
@@ -130,4 +136,9 @@ struct timespec diff(struct timespec start, struct timespec end) {
 		temp.tv_nsec = end.tv_nsec - start.tv_nsec;
 	}
 	return temp;
+}
+
+double timeInSeconds(struct timespec *t) {
+    // a timespec has integer values for seconds and nano seconds
+    return (t->tv_sec + 1.0e-9 * (t->tv_nsec));
 }
