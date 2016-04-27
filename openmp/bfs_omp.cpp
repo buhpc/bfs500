@@ -104,7 +104,7 @@ int main() {
  	printf("Time: %ld (msec)\n", ms);
  	*/
  	double testTime = timeInSeconds(&time2)-timeInSeconds(&time1);
-    printf("Seconds: %lf\n", testTime * 1000.0);
+    printf("Millieconds: %lf\n", testTime * 1000.0);
 
 	return 0;
 }
