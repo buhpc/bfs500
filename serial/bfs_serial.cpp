@@ -11,7 +11,7 @@
 #include <queue>
 
 #define VERTICES 1000
-#define EDGES 100 
+#define EDGES 10 
 
 #define GIG 1000000000
 #define CPG 2.90            // Cycles per GHz -- Adjust to your computer
@@ -52,13 +52,16 @@ int main() {
 	// graph represents the matrix
 	int **graph = new int*[VERTICES];
 	for (i = 0; i < VERTICES; i++) {	
-    	graph[i] = new int[VERTICES]; 
+    	    graph[i] = new int[VERTICES]; 
   	}
 
 	int size[VERTICES] = {};
 	
 	// visited contains whether a vertex has been visited
 	int *visited = new int[VERTICES];
+        for (i = 0; i < VERTICES; i++) {
+            visited[i] = 0;
+        }
 
 	// Generate the graphs
         //populate_random(graph, size, VERTICES, EDGES);
@@ -78,28 +81,35 @@ int main() {
 	elapsedTime = diff(time1, time2);
 
 	cout << "Serial BFS" << endl;
-	printf("CPE: %ld\n", (long int)((double)(CPG) * (double)(GIG * elapsedTime.tv_sec + elapsedTime.tv_nsec)));
-
+	printf("CPE: %ld\n", (long int)((double)(CPG) * (double)(GIG * elapsedTime.tv_sec + elapsedTime.tv_nsec))); 
+    
+        //Validation - Checks each vertex was visited once
+        for (i = 0; i < VERTICES; i++) {
+            if (visited[i] != 1) {
+                printf("visited[%d] was %d\n", i, visited[i]);
+            }
+        }
 	return 0;
 }
 
 void bfs(int** graph, int *size, int vertex, int *visited) {
 	// double-ended queue
 	deque<int> q;
-
-	visited[vertex] = 1;
+       
+	visited[vertex] += 1;
 	q.push_back(vertex);
 
-	int i;
+	int i, next_vertex;
 
 	while (!q.empty()) {
 		vertex = q.front();
 		q.pop_front();
 
 		for (i = 0; i < size[vertex]; i++) {
-			if (!visited[graph[vertex][i]]) {
-				visited[graph[vertex][i]] = 1;
-				q.push_back(graph[vertex][i]);
+                        next_vertex = graph[vertex][i];
+			if (!visited[next_vertex]) {
+				visited[next_vertex] += 1;
+				q.push_back(next_vertex);
 			}
 		}
 	}

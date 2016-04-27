@@ -1,7 +1,3 @@
-/*
- * bfs_omp.cpp
- * g++ -o bfs_omp bfs_omp.cpp -lrt -fopenmp
- */
 
 #include <iostream>
 #include <stdio.h>      /* printf, NULL */
@@ -9,17 +5,14 @@
 #include <time.h>
 #include <vector>
 #include <queue>
-#include <omp.h>
 
 #define VERTICES 1000
 #define EDGES 10 
 
 #define GIG 1000000000
 #define CPG 2.90            // Cycles per GHz -- Adjust to your computer
-#define NUM_THREADS 4 //Changed this two 4
-//Only 4 cores on CPU; if NUM_THREADS > num cores, is really slow 
 
-#include "bfs_omp.h"
+#include "bfs_serialopt.h"
 
 using namespace std;
 
@@ -27,7 +20,7 @@ using namespace std;
 void populate_random(int **graph, int *size, const int vertices, const int edges) {
     int i, j;
     srand(time(NULL));
-
+    
     for (i = 0; i < vertices; i++) {
         size[i] = rand() % edges;
         for (j = 0; j < size[i]; j++) {
@@ -48,26 +41,27 @@ void populate_known(int **graph, int* size, const int vertices, const int edges)
     }
 }
 
+
 int main() {
-	int i;
+        int i;
 
 	// graph represents the matrix
 	int **graph = new int*[VERTICES];
 	for (i = 0; i < VERTICES; i++) {	
-    	graph[i] = new int[VERTICES]; 
+    	    graph[i] = new int[VERTICES]; 
   	}
 
 	int size[VERTICES] = {};
 	
-	// visited contains visited positions
+	// visited contains whether a vertex has been visited
 	int *visited = new int[VERTICES];
         for (i = 0; i < VERTICES; i++) {
             visited[i] = 0;
         }
 
-	// Load the graph
+	// Generate the graphs
         //populate_random(graph, size, VERTICES, EDGES);
-        populate_known(graph, size, VERTICES, EDGES);
+        populate_known(graph, size, VERTICES, EDGES);	
 
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
 
@@ -82,44 +76,54 @@ int main() {
 
 	elapsedTime = diff(time1, time2);
 
-	cout << "OpenMP BFS" << endl;
-	printf("CPE: %ld\n", (long int)((double)(CPG) * (double)(GIG * elapsedTime.tv_sec + elapsedTime.tv_nsec)));
-
-        //Validation - checks that every vertex in tree was visted once
+	cout << "Serial BFS" << endl;
+	printf("CPE: %ld\n", (long int)((double)(CPG) * (double)(GIG * elapsedTime.tv_sec + elapsedTime.tv_nsec))); 
+    
+        //Validation - Checks each vertex was visited once
         for (i = 0; i < VERTICES; i++) {
             if (visited[i] != 1) {
-                printf("Visited[%d] was %d\n", i, visited[i]);
-            } 
+                printf("visited[%d] was %d\n", i, visited[i]);
+            }
         }
 	return 0;
 }
 
 void bfs(int** graph, int *size, int vertex, int *visited) {
-	omp_set_num_threads(NUM_THREADS);	
-
-	visited[vertex] += 1;
-
-	int i, next_vertex;
 	// double-ended queue
 	deque<int> q;
+       
+	visited[vertex] += 1;
 	q.push_back(vertex);
 
-	#pragma omp parallel shared(graph, visited, vertex) private(q, i, next_vertex)
-        {	
-	    while (!q.empty()) {
+	int i, next_vertex0, next_vertex1, next_vertex2, next_vertex3;
+        int limit = size[vertex];
+
+	while (!q.empty()) {
 		vertex = q.front();
 		q.pop_front();
-                
-		#pragma omp parallel for
-		for (i = 0; i < size[vertex]; i++) {
-                        next_vertex = graph[vertex][i];
-			if (!visited[next_vertex]) {
-				visited[next_vertex] += 1;
-				#pragma omp critical
-				q.push_back(next_vertex);
+
+		for (i = 0; i < limit; i += 4) {
+                        next_vertex0 = graph[vertex][i];
+                        next_vertex1 = graph[vertex][i+1];
+                        next_vertex2 = graph[vertex][i+2];
+                        next_vertex3 = graph[vertex][i+3];
+			if (!visited[next_vertex0]) {
+				visited[next_vertex0] += 1;
+				q.push_back(next_vertex0);
 			}
+                        if (!visited[next_vertex1]) {
+                        	visited[next_vertex1] += 1;
+                                q.push_back(next_vertex1);
+                        }
+                        if (!visited[next_vertex2]) {
+                                visited[next_vertex2] += 1;
+                                q.push_back(next_vertex2);
+                        }
+                        if (!visited[next_vertex3]) {
+                                visited[next_vertex3] += 1;
+                                q.push_back(next_vertex3);
+                        }
 		}
-	   }
 	}
 }
 
