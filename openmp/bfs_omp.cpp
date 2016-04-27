@@ -15,7 +15,7 @@
 #define EDGES 10
 
 #define GIG 1000000000
-#define CPG 2.90            // Cycles per GHz -- Adjust to your computer
+#define CPG 3.07            // Cycles per GHz -- Adjust to your computer
 #define NUM_THREADS 4 //Changed this two 4
 //Only 4 cores on CPU; if NUM_THREADS > num cores, is really slow 
 
@@ -95,7 +95,7 @@ int main() {
     clock_gettime(CLOCK_MONOTONIC, &time2);
 	// clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time2);
 
-	elapsedTime = diff(time1, time2);
+	// elapsedTime = diff(time1, time2);
 
 	cout << "OpenMP BFS" << endl;
 	/*
@@ -104,7 +104,7 @@ int main() {
  	printf("Time: %ld (msec)\n", ms);
  	*/
  	double testTime = timeInSeconds(&time2)-timeInSeconds(&time1);
-    printf("Test time: %lf\n", testTime);
+    printf("Seconds: %lf\n", testTime * 1000.0);
 
 	return 0;
 }
