@@ -16,8 +16,8 @@
 // #include "cuPrintf.cu"
 // #include "cuPrintf.cuh"
 
-#define VERTICES 20000
-#define EDGES 10000
+#define VERTICES 1000000
+#define EDGES 20
 #define MAX_THREADS_PER_BLOCK 256
 
 #define GIG 1000000000
@@ -231,7 +231,7 @@ void bfs(Node* graph_nodes, int* graph_edge, int vertex, bool* visited) {
 
 	while (!q.empty()) {
 		vertex = q.front();
-		printf("At vertex: %d\n", vertex);
+		// printf("At vertex: %d\n", vertex);
 		q.pop_front();
 		int i;
 
