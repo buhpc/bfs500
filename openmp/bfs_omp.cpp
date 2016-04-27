@@ -81,6 +81,8 @@ int main() {
 
 	cout << "OpenMP BFS" << endl;
 	printf("CPE: %ld\n", (long int)((double)(CPG) * (double)(GIG * elapsedTime.tv_sec + elapsedTime.tv_nsec)));
+	long ms = (elapsedTime.tv_sec * 1000) + (elapsedTime.tv_nsec / 1.0e6);		
+ 	printf("Time: %ld (msec)\n", ms);
 
 	return 0;
 }
@@ -96,20 +98,20 @@ void bfs(int** graph, int *size, int vertex, int *visited) {
 	q.push_back(vertex);
 
 	#pragma omp parallel shared(graph, visited, vertex) private(i, q)
-        {	
+    {	
 	    while (!q.empty()) {
-		vertex = q.front();
-		q.pop_front();
- 
-		#pragma omp parallel for
-		for (i = 0; i < size[vertex]; i++) {
-			if (!visited[graph[vertex][i]]) {
-				visited[graph[vertex][i]] = 1;
-				#pragma omp critical
-				q.push_back(graph[vertex][i]);
+			vertex = q.front();
+			q.pop_front();
+	 
+			#pragma omp for
+			for (i = 0; i < size[vertex]; i++) {
+				if (!visited[graph[vertex][i]]) {
+					visited[graph[vertex][i]] = 1;
+					#pragma omp critical
+					q.push_back(graph[vertex][i]);
+				}
 			}
 		}
-	   }
 	}
 }
 
