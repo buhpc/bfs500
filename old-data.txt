@@ -9,7 +9,7 @@ vertices 5 10 20
 10000 13476157 13904405 14550725
 100000 150996437 159080880 170162907
 1000000 1518500552 1574932600 1621938690
-
+			      
 4 threads
 vertices 5 10 20
 100 3143047 6278027 5714280
@@ -42,3 +42,13 @@ GPU time: 1.047008 (msec)     GPU time: 1.077664 (msec)     GPU time: 1.607136 (
 
 CPU time: 26003.349609 (msec) CPU time: 19981.265625 (msec) CPU time: 6618.611328 (msec)
 GPU time: 9.885120 (msec)     GPU time: 14.263584 (msec)    GPU time: 25.807552 (msec)
+
+OpenMP 20 edges
+CPE: 2077895465
+Time: 676 (msec)
+
+Serial BFS
+CPE: 1769567402
+Time: 576 (msec)
+
+
