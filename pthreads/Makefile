@@ -7,7 +7,7 @@ C_OBJS = bfs_pthread.o
 MY_INCLUDES = bfs_pthread.h
 
 CCX = g++
-CXXFLAGS = -g -lpthread -Wall -lrt -std=c++0x
+CXXFLAGS = -g -lpthread -Wall -lrt -std=c++0x -O3
 
 all: $(TARGET)
 .o:.cpp $(MY_INCLUDES) 

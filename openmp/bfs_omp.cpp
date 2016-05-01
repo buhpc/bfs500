@@ -13,6 +13,7 @@
 
 #define VERTICES 1000
 #define EDGES 10 
+#define STARTV 0
 
 #define GIG 1000000000
 #define CPG 2.90            // Cycles per GHz -- Adjust to your computer
@@ -22,6 +23,86 @@
 #include "bfs_omp.h"
 
 using namespace std;
+
+
+int main() {
+    int i;
+
+    // graph represents the matrix
+    int **graph = new int*[VERTICES];
+    for (i = 0; i < VERTICES; i++) {	
+    	graph[i] = new int[VERTICES]; 
+    }
+
+    int size[VERTICES] = {};
+	
+    // visited contains visited positions
+    int *visited = new int[VERTICES];
+    for (i = 0; i < VERTICES; i++) {
+        visited[i] = 0;
+    }
+    // Load the graph
+    //populate_random(graph, size, VERTICES, EDGES);
+    populate_known(graph, size, VERTICES, EDGES);
+
+    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
+    bfs(graph, size, visited, STARTV);
+    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time2);
+    elapsedTime = diff(time1, time2);
+	
+    printf("%ld\n", (long int)((double)(10e-3) * (double)(GIG * elapsedTime.tv_sec + elapsedTime.tv_nsec)));
+
+    //Validation - checks that every vertex in tree was visted once
+    for (i = 0; i < VERTICES; i++) {
+        if (visited[i] != 1) {
+            printf("Visited[%d] was %d\n", i, visited[i]);
+        } 
+    }
+
+    return 0;
+}
+
+
+void bfs(int** graph, int *size, int *visited, int vertex) {
+    omp_set_num_threads(NUM_THREADS);	
+    
+    int j, ilimit, next_vertex;
+    deque<int> q;
+
+    if (!visited[vertex]) {
+        visited[vertex] += 1;
+        q.push_back(vertex);
+
+	while (!q.empty()) {
+            vertex = q.front();
+  	    q.pop_front();
+            ilimit = size[vertex];
+
+            #pragma omp parallel for default(shared) private(j, next_vertex)
+            for (j = 0; j < ilimit; j++) {
+                next_vertex = graph[vertex][j];
+	    	if (!visited[next_vertex]) {
+	            visited[next_vertex] += 1;
+		    #pragma omp critical
+                    q.push_back(next_vertex);
+		}
+	    }
+	}
+    }
+}
+
+
+struct timespec diff(struct timespec start, struct timespec end) {
+	struct timespec temp;
+	if ((end.tv_nsec-start.tv_nsec) < 0) {
+		temp.tv_sec = end.tv_sec-start.tv_sec - 1;
+		temp.tv_nsec = 1000000000 + end.tv_nsec - start.tv_nsec;
+	} else {
+		temp.tv_sec = end.tv_sec - start.tv_sec;
+		temp.tv_nsec = end.tv_nsec - start.tv_nsec;
+	}
+	return temp;
+}
 
 
 void populate_random(int **graph, int *size, const int vertices, const int edges) {
@@ -41,98 +122,10 @@ void populate_known(int **graph, int* size, const int vertices, const int edges)
     int i, j;
 
     for (i = 0; i < vertices; i++) {
-        size[i] = i % edges;
-        for (j = 0; j < size[i]; j++) {
-            graph[i][j] = j % vertices;
+        size[i] = vertices;
+        graph[i][0] = i;
+        for (j = 1; j < size[i]; j++) {
+            graph[i][j] = (j + i) % vertices;
         }
     }
-}
-
-int main() {
-	int i;
-
-	// graph represents the matrix
-	int **graph = new int*[VERTICES];
-	for (i = 0; i < VERTICES; i++) {	
-    	graph[i] = new int[VERTICES]; 
-  	}
-
-	int size[VERTICES] = {};
-	
-	// visited contains visited positions
-	int *visited = new int[VERTICES];
-        for (i = 0; i < VERTICES; i++) {
-            visited[i] = 0;
-        }
-
-	// Load the graph
-        //populate_random(graph, size, VERTICES, EDGES);
-        populate_known(graph, size, VERTICES, EDGES);
-
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
-
-	// Breadth first search
-	for (i = 0; i < VERTICES; i++) {
-		if (!visited[i]) {
-			bfs(graph, size, i, visited);
-		}
-	}
-
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time2);
-
-	elapsedTime = diff(time1, time2);
-
-	cout << "OpenMP BFS" << endl;
-	printf("CPE: %ld\n", (long int)((double)(CPG) * (double)(GIG * elapsedTime.tv_sec + elapsedTime.tv_nsec)));
-	long ms = (elapsedTime.tv_sec * 1000) + (elapsedTime.tv_nsec / 1.0e6);		
- 	printf("Time: %ld (msec)\n", ms);
-
-        //Validation - checks that every vertex in tree was visted once
-        for (i = 0; i < VERTICES; i++) {
-            if (visited[i] != 1) {
-                printf("Visited[%d] was %d\n", i, visited[i]);
-            } 
-        }
-	return 0;
-}
-
-void bfs(int** graph, int *size, int vertex, int *visited) {
-	omp_set_num_threads(NUM_THREADS);	
-
-	visited[vertex] += 1;
-
-	int i, next_vertex;
-	// double-ended queue
-	deque<int> q;
-	q.push_back(vertex);
-
-	#pragma omp parallel shared(graph, visited, vertex) private(q, i, next_vertex)
-        {	
-	    while (!q.empty()) {
-		vertex = q.front();
-		q.pop_front();
-                
-		#pragma omp parallel for
-		for (i = 0; i < size[vertex]; i++) {
-                        next_vertex = graph[vertex][i];
-			if (!visited[next_vertex]) {
-				visited[next_vertex] += 1;
-				#pragma omp critical
-				q.push_back(next_vertex);
-			}
-		}
-	}
-        }
-}
-
-struct timespec diff(struct timespec start, struct timespec end) {
-	struct timespec temp;
-	if ((end.tv_nsec-start.tv_nsec) < 0) {
-		temp.tv_sec = end.tv_sec-start.tv_sec - 1;
-		temp.tv_nsec = 1000000000 + end.tv_nsec - start.tv_nsec;
-	} else {
-		temp.tv_sec = end.tv_sec - start.tv_sec;
-		temp.tv_nsec = end.tv_nsec - start.tv_nsec;
-	}
-	return temp;
 }
