@@ -5,10 +5,10 @@
 #include <vector>
 #include <queue>
 
-#define VERTICES 100
-#define EDGES 5 
-#define STARTV 99 
-#define GIG 1000000000
+#define VERTICES 90000
+#define EDGES 100 
+#define STARTV 0
+#define GIG 10e9
 
 #include "bfs_serial.h"
 #include "bfs_main.h"
@@ -23,12 +23,12 @@ int main() {
     // graph represents the matrix
     int **graph = new int*[VERTICES];
     for (i = 0; i < VERTICES; i++) {	
-    	graph[i] = new int[VERTICES]; 
+    	graph[i] = new int[VERTICES+EDGES+2]; 
     }  	
  
     int size[VERTICES] = {};
-    populate_random(graph, size, VERTICES, EDGES);
-    //populate_known(graph, size, VERTICES, EDGES);	
+    //populate_random(graph, size, VERTICES, EDGES);
+    populate_known(graph, size, VERTICES, EDGES);	
 
     // visited contains whether a vertex has been visited
     int *visited = new int[VERTICES];

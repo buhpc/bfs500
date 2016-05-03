@@ -9,12 +9,11 @@
 #include "bfs_pthread.h"
 
 #define GIG 10e9
-#define CPG 2.90
 #define NUM_THREADS 12 
 
 #define VERTICES 100000
-#define EDGES 5
-#define STARTV 6
+#define EDGES 10 
+#define STARTV 0 
 using namespace std;
 
 int size[VERTICES] = {};
@@ -33,7 +32,7 @@ int main() {
 
     //Allocated Graph to be searched size VERTICES X VERTICES
     for (i = 0; i < VERTICES; i++) {
-        graph[i] = new int[VERTICES];
+        graph[i] = new int[VERTICES+EDGES+2];
     }
  
     //Popluate Graph
@@ -67,37 +66,34 @@ int main() {
 
 //Thread Function
 void *bfs_parellel_region(void *arg) {
-    int next_vertex, j, ilimit;
-    long vertex = (long) arg;
-        
-    if (!visited[vertex]) {
-        visited[vertex] += 1;
-        q.push_back(vertex);
-   
-        while(!q.empty()) {
-            vertex = q.front();
-            q.pop_front();
-            ilimit = size[vertex];
+    int vertex, next_vertex, j, ilimit;
+         
+    while(!q.empty()) {
+        vertex = q.front();
+        q.pop_front();
+        ilimit = size[vertex];
      
-            for (j = 0; j < ilimit; j++) {
-                next_vertex = graph[vertex][j];
-                if (!visited[next_vertex]) {
-                    visited[next_vertex] += 1;
-                    q.push_back(next_vertex);
-                }
-            }                  
-        }
+        for (j = 0; j < ilimit; j++) {
+            next_vertex = graph[vertex][j];
+            if (!visited[next_vertex]) {
+                visited[next_vertex] += 1;
+                q.push_back(next_vertex);
+            }
+        }                  
     }
 }
 
 
 //BFS Search
 void bfs(int vertex) {
-    int i, error;
+    int i, error, j, next_vertex, ilimit;
     pthread_t threads[NUM_THREADS];   
 
+    visited[vertex] += 1;
+    q.push_back(vertex);
+    
     for (i = 0; i < NUM_THREADS; i++) {       
-        error = pthread_create(&threads[i], NULL, &bfs_parellel_region, (void *) vertex);
+        error = pthread_create(&threads[i], NULL, &bfs_parellel_region, NULL);
         if (error) {
             printf("Thread %d could not be created\n", i);
         }
@@ -106,17 +102,42 @@ void bfs(int vertex) {
             printf("Thread %d could not be joined\n", i);
         }
     }
+
+    while(!q.empty()) {
+        vertex = q.front();
+        q.pop_front();
+        ilimit = size[vertex];
+     
+        for (j = 0; j < ilimit; j++) {
+            next_vertex = graph[vertex][j];
+            if (!visited[next_vertex]) {
+                visited[next_vertex] += 1;
+                q.push_back(next_vertex);
+            }
+        }                  
+    }
 } 
   
  
 void populate_random(int **graph, int *size, const int vertices, const int edges) {
-    int i, j;
+    int i, j, sizev;
+    queue<int> unassigned;
     srand(time(NULL));
+    for (i = 0; i < vertices; i++) {
+        unassigned.push(i); //Every vertex is initially unassigned
+    }
 
     for (i = 0; i < vertices; i++) {
-        size[i] = rand() % edges;
-        for (j = 0; j < size[i]; j++) {
-            graph[i][j] = rand() % vertices;
+        sizev = rand() % edges + 2; //Each vertex connected to at least one other
+        size[i] = sizev;
+        graph[i][0] = i;
+        for (j = 1; j < sizev; j++) {
+            if(!unassigned.empty() && unassigned.front() != i) {
+                graph[i][j] = unassigned.front();
+                unassigned.pop();
+            } else {
+                graph[i][j] = rand() % vertices;
+            }
         }
     }
 }

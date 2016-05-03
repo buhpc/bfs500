@@ -1,8 +1,3 @@
-/*
- * bfs_omp.cpp
- * g++ -o bfs_omp bfs_omp.cpp -lrt -fopenmp
- */
-
 #include <iostream>
 #include <stdio.h>      /* printf, NULL */
 #include <stdlib.h>     /* srand, rand */
@@ -12,10 +7,11 @@
 #include <omp.h>
 
 #define VERTICES 1000
-#define EDGES 10 
+#define EDGES 5 
 #define STARTV 0
+#define NUMLOOPS 1000 
 
-#define GIG 1000000000
+#define GIG 10e9
 #define CPG 2.90            // Cycles per GHz -- Adjust to your computer
 #define NUM_THREADS 4 //Changed this two 4
 //Only 4 cores on CPU; if NUM_THREADS > num cores, is really slow 
@@ -31,7 +27,7 @@ int main() {
     // graph represents the matrix
     int **graph = new int*[VERTICES];
     for (i = 0; i < VERTICES; i++) {	
-    	graph[i] = new int[VERTICES]; 
+    	graph[i] = new int[VERTICES+EDGES+2]; 
     }
 
     int size[VERTICES] = {};
@@ -42,8 +38,8 @@ int main() {
         visited[i] = 0;
     }
     // Load the graph
-    //populate_random(graph, size, VERTICES, EDGES);
-    populate_known(graph, size, VERTICES, EDGES);
+    populate_random(graph, size, VERTICES, EDGES);
+    //populate_known(graph, size, VERTICES, EDGES);
 
     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
     bfs(graph, size, visited, STARTV);
@@ -66,29 +62,32 @@ int main() {
 void bfs(int** graph, int *size, int *visited, int vertex) {
     omp_set_num_threads(NUM_THREADS);	
     
-    int j, ilimit, next_vertex;
+    int i, j, ilimit, next_vertex;
     deque<int> q;
 
-    if (!visited[vertex]) {
-        visited[vertex] += 1;
-        q.push_back(vertex);
+    visited[vertex] += 1;
+    q.push_back(vertex);
 
-	while (!q.empty()) {
-            vertex = q.front();
-  	    q.pop_front();
-            ilimit = size[vertex];
-
-            #pragma omp parallel for default(shared) private(j, next_vertex)
-            for (j = 0; j < ilimit; j++) {
-                next_vertex = graph[vertex][j];
-	    	if (!visited[next_vertex]) {
-	            visited[next_vertex] += 1;
-		    #pragma omp critical
-                    q.push_back(next_vertex);
-		}
-	    }
+#pragma omp parallel default(shared) private(i, j, vertex, next_vertex, ilimit) 
+{
+    while (!q.empty()) {
+        #pragma omp critical
+        {
+        vertex = q.front();
+        q.pop_front();
+        }
+        ilimit = size[vertex];
+        
+        for (j = 0; j < ilimit; j++) {
+            next_vertex = graph[vertex][j];
+	    if (!visited[next_vertex]) {
+	        visited[next_vertex] += 1;
+		#pragma omp critical
+                q.push_back(next_vertex);
+            }
 	}
     }
+}
 }
 
 
@@ -106,13 +105,25 @@ struct timespec diff(struct timespec start, struct timespec end) {
 
 
 void populate_random(int **graph, int *size, const int vertices, const int edges) {
-    int i, j;
+    int i, j, sizev;
+    queue<int> unassigned;
     srand(time(NULL));
 
     for (i = 0; i < vertices; i++) {
-        size[i] = rand() % edges;
-        for (j = 0; j < size[i]; j++) {
-            graph[i][j] = rand() % vertices;
+        unassigned.push(i); //Every vertex is initially unassigned
+    }
+
+    for (i = 0; i < vertices; i++) {
+        sizev = rand() % edges + 2; //Each vertex connected to at least one other
+        size[i] = sizev;
+        graph[i][0] = i;
+        for (j = 1; j < sizev; j++) {
+            if(!unassigned.empty() && unassigned.front() != i) {
+                graph[i][j] = unassigned.front();
+                unassigned.pop();
+            } else {
+                graph[i][j] = rand() % vertices;
+            }
         }
     }
 }
@@ -129,3 +140,4 @@ void populate_known(int **graph, int* size, const int vertices, const int edges)
         }
     }
 }
+
