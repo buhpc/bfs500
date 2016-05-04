@@ -6,10 +6,9 @@
 #include <queue>
 #include <omp.h>
 
-#define VERTICES 1000
+#define VERTICES 10000
 #define EDGES 5 
-#define STARTV 0
-#define NUMLOOPS 1000 
+#define STARTV 0 
 
 #define GIG 10e9
 #define CPG 2.90            // Cycles per GHz -- Adjust to your computer
@@ -38,8 +37,8 @@ int main() {
         visited[i] = 0;
     }
     // Load the graph
-    populate_random(graph, size, VERTICES, EDGES);
-    //populate_known(graph, size, VERTICES, EDGES);
+    //populate_random(graph, size, VERTICES, EDGES);
+    populate_known(graph, size, VERTICES, EDGES);
 
     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
     bfs(graph, size, visited, STARTV);
@@ -60,34 +59,28 @@ int main() {
 
 
 void bfs(int** graph, int *size, int *visited, int vertex) {
-    omp_set_num_threads(NUM_THREADS);	
-    
-    int i, j, ilimit, next_vertex;
+    omp_set_num_threads(NUM_THREADS);
+    int j, ilimit, next_vertex;
     deque<int> q;
 
     visited[vertex] += 1;
     q.push_back(vertex);
 
-#pragma omp parallel default(shared) private(i, j, vertex, next_vertex, ilimit) 
-{
     while (!q.empty()) {
-        #pragma omp critical
-        {
         vertex = q.front();
         q.pop_front();
-        }
         ilimit = size[vertex];
-        
+     
+        #pragma omp parallel for default(shared) private(j, next_vertex) firstprivate(ilimit, vertex)       
         for (j = 0; j < ilimit; j++) {
             next_vertex = graph[vertex][j];
 	    if (!visited[next_vertex]) {
 	        visited[next_vertex] += 1;
-		#pragma omp critical
+                #pragma omp critical
                 q.push_back(next_vertex);
             }
 	}
     }
-}
 }
 
 
