@@ -5,8 +5,8 @@
 #include <vector>
 #include <queue>
 
-#define VERTICES 90000
-#define EDGES 100 
+#define VERTICES 500 
+#define EDGES 100000 
 #define STARTV 0
 #define GIG 10e9
 
