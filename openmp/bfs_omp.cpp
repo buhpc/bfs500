@@ -12,7 +12,7 @@
 
 #define GIG 10e9
 #define CPG 2.90            // Cycles per GHz -- Adjust to your computer
-#define NUM_THREADS 4 //Changed this two 4
+#define NUM_THREADS 2 //Changed this two 4
 //Only 4 cores on CPU; if NUM_THREADS > num cores, is really slow 
 
 #include "bfs_omp.h"
@@ -66,21 +66,27 @@ void bfs(int** graph, int *size, int *visited, int vertex) {
     visited[vertex] += 1;
     q.push_back(vertex);
 
+#pragma omp parallel default(shared) private(j, next_vertex, ilimit) firstprivate(vertex)
+{
     while (!q.empty()) {
+        #pragma omp critical (firstlock)
+        {
         vertex = q.front();
         q.pop_front();
+        }
         ilimit = size[vertex];
      
-        #pragma omp parallel for default(shared) private(j, next_vertex) firstprivate(ilimit, vertex)       
+        #pragma omp for    
         for (j = 0; j < ilimit; j++) {
             next_vertex = graph[vertex][j];
 	    if (!visited[next_vertex]) {
 	        visited[next_vertex] += 1;
-                #pragma omp critical
+                #pragma omp critical (scndlock)
                 q.push_back(next_vertex);
             }
 	}
     }
+}
 }
 
 

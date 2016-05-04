@@ -9,9 +9,9 @@
 #include "bfs_pthread.h"
 
 #define GIG 10e9
-#define NUM_THREADS 12 
+#define NUM_THREADS 4 
 
-#define VERTICES 100000
+#define VERTICES 50000
 #define EDGES 10 
 #define STARTV 0 
 using namespace std;
