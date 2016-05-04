@@ -6,14 +6,13 @@
 #include <queue>
 #include <omp.h>
 
-#define VERTICES 10000
-#define EDGES 5 
+#define VERTICES 500
+#define EDGES 100 
 #define STARTV 0 
 
 #define GIG 10e9
-#define CPG 2.90            // Cycles per GHz -- Adjust to your computer
-#define NUM_THREADS 2 //Changed this two 4
-//Only 4 cores on CPU; if NUM_THREADS > num cores, is really slow 
+#define CPG 2.90            
+#define NUM_THREADS 8 
 
 #include "bfs_omp.h"
 
@@ -37,8 +36,8 @@ int main() {
         visited[i] = 0;
     }
     // Load the graph
-    //populate_random(graph, size, VERTICES, EDGES);
-    populate_known(graph, size, VERTICES, EDGES);
+    populate_random(graph, size, VERTICES, EDGES);
+    //populate_known(graph, size, VERTICES, EDGES);
 
     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
     bfs(graph, size, visited, STARTV);
@@ -66,16 +65,16 @@ void bfs(int** graph, int *size, int *visited, int vertex) {
     visited[vertex] += 1;
     q.push_back(vertex);
 
-#pragma omp parallel default(shared) private(j, next_vertex, ilimit) firstprivate(vertex)
+#pragma omp parallel default(shared) private(j, next_vertex) firstprivate(vertex, ilimit)
 {
     while (!q.empty()) {
         #pragma omp critical (firstlock)
         {
         vertex = q.front();
-        q.pop_front();
-        }
+        q.pop_front(); 
         ilimit = size[vertex];
-     
+        }
+
         #pragma omp for    
         for (j = 0; j < ilimit; j++) {
             next_vertex = graph[vertex][j];
