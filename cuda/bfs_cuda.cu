@@ -64,7 +64,41 @@ int main() {
 	int j = 0;
 	int len;
 
-	populate_random(graph_nodes, graph_edge, graph_mask, updating_graph_mask, graph_visited, h_graph_visited);
+	for (i = 0; i < VERTICES; i++) {
+		// GPU transfer
+		graph_nodes[i].no_of_edges = VERTICES;
+		graph_edge[i] = i;
+
+		if (i == 0) {
+			graph_nodes[i].start= i;
+			len = graph_nodes[i].no_of_edges;
+			graph_edge = (int *) malloc(sizeof(int)*len);
+			if ((graph_edge = (int *) malloc(sizeof(int) * len)) == NULL) {
+				printf("Could not allocate memory for graph_edge : %d\n", i);
+				exit(1);
+			} 
+		} else {
+			graph_nodes[i].start = graph_nodes[i-1].start + graph_nodes[i-1].no_of_edges;
+			len += graph_nodes[i].no_of_edges;
+			graph_edge = (int *) realloc(graph_edge, sizeof(int)*len);
+			if ((graph_edge = (int *) realloc(graph_edge, sizeof(int)*len)) == NULL) {
+				printf("Could not reallocate memory for graph_edge : %d\n", i);
+				exit(1);
+			}
+		}
+		
+		// printf("%d:\t", i);
+		graph_mask[i] = false;
+		updating_graph_mask[i] = false;
+		graph_visited[i] = false;
+		h_graph_visited[i] = false;
+		for (j = graph_nodes[i].start; j < (graph_nodes[i].no_of_edges+graph_nodes[i].start); j++) {
+			graph_edge[j] = (j + i ) % VERTICES;
+			// printf("%d, ", graph_edge[j]);
+		}
+	}
+
+	// populate_random(graph_nodes, graph_edge, graph_mask, updating_graph_mask, graph_visited, h_graph_visited);
 	// populate_known(graph_nodes, graph_edge, graph_mask, updating_graph_mask,graph_visited, h_graph_visited);
 
 	// Create the cuda events
@@ -74,11 +108,11 @@ int main() {
 	cudaEventRecord(start1, 0);
 
 	int vertex;
-	for (vertex=0; vertex < VERTICES; vertex++) {
-		if (!h_graph_visited[vertex]) {   		
+	// for (vertex=0; vertex < VERTICES; vertex++) {
+		// if (!h_graph_visited[vertex]) {   		
 			bfs(graph_nodes,graph_edge,vertex,h_graph_visited);	
-		}
-	}
+		// }
+	// }
 
 	// Stop and destroy the timer
 	cudaEventRecord(stop1,0);
