@@ -64,39 +64,8 @@ int main() {
 	int j = 0;
 	int len;
 
-	for (i = 0; i < VERTICES; i++) {
-		// GPU transfer
-		graph_nodes[i].no_of_edges = (rand() % (EDGES)) + 1;
-
-		if (i == 0) {
-			graph_nodes[i].start= i;
-			len = graph_nodes[i].no_of_edges;
-			graph_edge = (int *) malloc(sizeof(int)*len);
-			if ((graph_edge = (int *) malloc(sizeof(int) * len)) == NULL) {
-				printf("Could not allocate memory for graph_edge : %d\n", i);
-				exit(1);
-			} 
-		} else {
-			graph_nodes[i].start = graph_nodes[i-1].start + graph_nodes[i-1].no_of_edges;
-			len += graph_nodes[i].no_of_edges;
-			graph_edge = (int *) realloc(graph_edge, sizeof(int)*len);
-			if ((graph_edge = (int *) realloc(graph_edge, sizeof(int)*len)) == NULL) {
-				printf("Could not reallocate memory for graph_edge : %d\n", i);
-				exit(1);
-			}
-		}
-		
-		// printf("%d:\t", i);
-		graph_mask[i] = false;
-		updating_graph_mask[i] = false;
-		graph_visited[i] = false;
-		h_graph_visited[i] = false;
-		for (j = graph_nodes[i].start; j < (graph_nodes[i].no_of_edges+graph_nodes[i].start); j++) {
-			int linkedVertex = rand() % VERTICES;
-			graph_edge[j] = rand()%VERTICES;
-			// printf("%d, ", graph_edge[j]);
-		}
-	}
+	populate_random(graph_nodes, graph_edge, graph_mask, updating_graph_mask, graph_visited, h_graph_visited);
+	// populate_known(graph_nodes, graph_edge, graph_mask, updating_graph_mask,graph_visited, h_graph_visited);
 
 	// Create the cuda events
 	cudaEventCreate(&start1);
@@ -220,6 +189,79 @@ int main() {
 	cudaFree(d_graph_mask);
 	cudaFree(d_updating_graph_mask);
 	cudaFree(d_graph_visited);
+}
+
+void populate_random(Node* graph_nodes, int* graph_edge, bool *graph_mask, bool *updating_graph_mask, bool *graph_visited, bool *h_graph_visited) {
+	int i = 0;
+	int len;
+
+	for (i = 0; i < VERTICES; i++) {
+		// GPU transfer
+		graph_nodes[i].no_of_edges = (rand() % (EDGES)) + 1;
+
+		if (i == 0) {
+			graph_nodes[i].start= i;
+			len = graph_nodes[i].no_of_edges;
+			graph_edge = (int *) malloc(sizeof(int)*len);
+			if ((graph_edge = (int *) malloc(sizeof(int) * len)) == NULL) {
+				printf("Could not allocate memory for graph_edge : %d\n", i);
+				exit(1);
+			} 
+		} else {
+			graph_nodes[i].start = graph_nodes[i-1].start + graph_nodes[i-1].no_of_edges;
+			len += graph_nodes[i].no_of_edges;
+			graph_edge = (int *) realloc(graph_edge, sizeof(int)*len);
+			if ((graph_edge = (int *) realloc(graph_edge, sizeof(int)*len)) == NULL) {
+				printf("Could not reallocate memory for graph_edge : %d\n", i);
+				exit(1);
+			}
+		}
+		
+		// printf("%d:\t", i);
+		graph_mask[i] = false;
+		updating_graph_mask[i] = false;
+		graph_visited[i] = false;
+		h_graph_visited[i] = false;
+		for (j = graph_nodes[i].start; j < (graph_nodes[i].no_of_edges+graph_nodes[i].start); j++) {
+			graph_edge[j] = rand() % VERTICES;
+			// printf("%d, ", graph_edge[j]);
+		}
+	}
+}
+
+void populate_known(Node* graph_nodes, int* graph_edge, bool *graph_mask, bool *updating_graph_mask, bool *graph_visited, bool *h_graph_visited) {
+	for (i = 0; i < VERTICES; i++) {
+		// GPU transfer
+		graph_nodes[i].no_of_edges = (rand() % (EDGES)) + 1;
+
+		if (i == 0) {
+			graph_nodes[i].start= i;
+			len = graph_nodes[i].no_of_edges;
+			graph_edge = (int *) malloc(sizeof(int)*len);
+			if ((graph_edge = (int *) malloc(sizeof(int) * len)) == NULL) {
+				printf("Could not allocate memory for graph_edge : %d\n", i);
+				exit(1);
+			} 
+		} else {
+			graph_nodes[i].start = graph_nodes[i-1].start + graph_nodes[i-1].no_of_edges;
+			len += graph_nodes[i].no_of_edges;
+			graph_edge = (int *) realloc(graph_edge, sizeof(int)*len);
+			if ((graph_edge = (int *) realloc(graph_edge, sizeof(int)*len)) == NULL) {
+				printf("Could not reallocate memory for graph_edge : %d\n", i);
+				exit(1);
+			}
+		}
+		
+		// printf("%d:\t", i);
+		graph_mask[i] = false;
+		updating_graph_mask[i] = false;
+		graph_visited[i] = false;
+		h_graph_visited[i] = false;
+		for (j = graph_nodes[i].start; j < (graph_nodes[i].no_of_edges+graph_nodes[i].start); j++) {
+			graph_edge[j] = (j + i ) % VERTICES;
+			// printf("%d, ", graph_edge[j]);
+		}
+	}
 }
 
 void bfs(Node* graph_nodes, int* graph_edge, int vertex, bool* visited) {

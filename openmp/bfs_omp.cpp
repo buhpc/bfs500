@@ -1,8 +1,3 @@
-/*
- * bfs_omp.cpp
- * g++ -o bfs_omp bfs_omp.cpp -lrt -fopenmp
- */
-
 #include <iostream>
 #include <stdio.h>      /* printf, NULL */
 #include <stdlib.h>     /* srand, rand */
@@ -11,42 +6,17 @@
 #include <queue>
 #include <omp.h>
 
-#define VERTICES 1000000
-#define EDGES 10
+#define VERTICES 500
+#define EDGES 100 
+#define STARTV 0 
 
-#define GIG 1000000000
-#define CPG 3.07            // Cycles per GHz -- Adjust to your computer
-#define NUM_THREADS 4 //Changed this two 4
-//Only 4 cores on CPU; if NUM_THREADS > num cores, is really slow 
+#define GIG 10e9
+#define CPG 2.90            
+#define NUM_THREADS 8 
 
 #include "bfs_omp.h"
 
 using namespace std;
-
-
-void populate_random(int **graph, int *size, const int vertices, const int edges) {
-    int i, j;
-    srand(time(NULL));
-
-    for (i = 0; i < vertices; i++) {
-        size[i] = rand() % edges;
-        for (j = 0; j < size[i]; j++) {
-            graph[i][j] = rand() % vertices;
-        }
-    }
-}
-
-
-void populate_known(int **graph, int* size, const int vertices, const int edges) {
-    int i, j;
-
-    for (i = 0; i < vertices; i++) {
-        size[i] = i % edges;
-        for (j = 0; j < size[i]; j++) {
-            graph[i][j] = j % vertices;
-        }
-    }
-}
 
 void printGraph(int **graph) {
 	int i;
@@ -72,29 +42,17 @@ int main() {
   	}
 
 	int size[VERTICES] = {};
-	
-	// visited contains visited positions
-	int *visited = new int[VERTICES];
 
-	// Load the graph
-	populate_random(graph, size, VERTICES, EDGES);
-	// populate_known(graph, size, VERTICES, EDGES);
-
-	// printGraph(graph);
+    // Load the graph
+    populate_random(graph, size, VERTICES, EDGES);
+    //populate_known(graph, size, VERTICES, EDGES);
 
     clock_gettime(CLOCK_MONOTONIC, &time1);
-	// clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
-
-	// Breadth first search
-	for (i = 0; i < VERTICES; i++) {
-		if (!visited[i]) {
-			bfs(graph, size, i, visited);
-		}
-	}
-
+    // clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
+    bfs(graph, size, visited, STARTV);
+	
     clock_gettime(CLOCK_MONOTONIC, &time2);
 	// clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time2);
-
 	// elapsedTime = diff(time1, time2);
 
 	cout << "OpenMP BFS" << endl;
@@ -106,36 +64,41 @@ int main() {
  	double testTime = timeInSeconds(&time2)-timeInSeconds(&time1);
     printf("Millieconds: %lf\n", testTime * 1000.0);
 
-	return 0;
+    return 0;
 }
 
-void bfs(int** graph, int *size, int vertex, int *visited) {
-	omp_set_num_threads(NUM_THREADS);	
 
-	visited[vertex] = 1;
+void bfs(int** graph, int *size, int *visited, int vertex) {
+    omp_set_num_threads(NUM_THREADS);
+    int j, ilimit, next_vertex;
+    deque<int> q;
 
-	int i;
-	// double-ended queue
-	deque<int> q;
-	q.push_back(vertex);
+    visited[vertex] += 1;
+    q.push_back(vertex);
 
-	#pragma omp parallel shared(graph, visited, vertex) private(i, q)
-    {	
-	    while (!q.empty()) {
-			vertex = q.front();
-			q.pop_front();
-	 
-			#pragma omp for
-			for (i = 0; i < size[vertex]; i++) {
-				if (!visited[graph[vertex][i]]) {
-					visited[graph[vertex][i]] = 1;
-					#pragma omp critical
-					q.push_back(graph[vertex][i]);
-				}
-			}
-		}
-	}
+#pragma omp parallel default(shared) private(j, next_vertex) firstprivate(vertex, ilimit)
+{
+    while (!q.empty()) {
+        #pragma omp critical (firstlock)
+        {
+        vertex = q.front();
+        q.pop_front(); 
+        ilimit = size[vertex];
+        }
+
+        #pragma omp for    
+        for (j = 0; j < ilimit; j++) {
+            next_vertex = graph[vertex][j];
+            if (!visited[next_vertex]) {
+	           visited[next_vertex] += 1;
+                #pragma omp critical (scndlock)
+                q.push_back(next_vertex);
+            }
+	   }
+    }
 }
+}
+
 
 struct timespec diff(struct timespec start, struct timespec end) {
 	struct timespec temp;
@@ -152,4 +115,41 @@ struct timespec diff(struct timespec start, struct timespec end) {
 double timeInSeconds(struct timespec *t) {
     // a timespec has integer values for seconds and nano seconds
     return (t->tv_sec + 1.0e-9 * (t->tv_nsec));
+}
+
+void populate_random(int **graph, int *size, const int vertices, const int edges) {
+    int i, j, sizev;
+    queue<int> unassigned;
+    srand(time(NULL));
+
+    for (i = 0; i < vertices; i++) {
+        unassigned.push(i); //Every vertex is initially unassigned
+    }
+
+    for (i = 0; i < vertices; i++) {
+        sizev = rand() % edges + 2; //Each vertex connected to at least one other
+        size[i] = sizev;
+        graph[i][0] = i;
+        for (j = 1; j < sizev; j++) {
+            if(!unassigned.empty() && unassigned.front() != i) {
+                graph[i][j] = unassigned.front();
+                unassigned.pop();
+            } else {
+                graph[i][j] = rand() % vertices;
+            }
+        }
+    }
+}
+
+
+void populate_known(int **graph, int* size, const int vertices, const int edges) {
+    int i, j;
+
+    for (i = 0; i < vertices; i++) {
+        size[i] = vertices;
+        graph[i][0] = i;
+        for (j = 1; j < size[i]; j++) {
+            graph[i][j] = (j + i) % vertices;
+        }
+    }
 }

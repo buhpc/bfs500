@@ -1,14 +1,14 @@
 .SUFFIXES:
 .SUFFIXES: .o .cpp
 #============================================================
-TARGET	=  bfs_omp
+TARGET	=  bfs_serialopt
 
-C_SOURCES =  bfs_omp.cpp 
-C_OBJS     =  bfs_omp.o
-MY_INCLUDES =  bfs_omp.h
+C_SOURCES =  bfs_serialopt.cpp 
+C_OBJS     =  bfs_serialopt.o
+MY_INCLUDES =  bfs_serialopt.h
 
 CCX = g++
-CXXFLAGS = -O3 -g -Wall -std=c++0x -lrt -fopenmp
+CXXFLAGS = -g -Wall -std=c++0x -lrt
 
 #============================================================
 all: $(TARGET)

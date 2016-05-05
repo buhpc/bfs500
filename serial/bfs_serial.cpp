@@ -1,12 +1,3 @@
-/*
- * bfs_serial.cpp
- * g++ -o bfs_serial bfs_serial.cpp -lrt
- */
-
-#include <iostream>
-#include <stdio.h>      /* printf, NULL */
-#include <stdlib.h>     /* srand, rand */
-#include <time.h>
 #include <vector>
 #include <queue>
 
@@ -20,27 +11,71 @@
 
 using namespace std;
 
+//Unoptimized
+void bfs(int** graph, int *size, int *visited, int vertex) {
+    // double-ended queue
+    deque<int> q;
+    int j, ilimit, next_vertex; 
 
-void populate_random(int **graph, int *size, const int vertices, const int edges) {
-    int i, j;
-    srand(time(NULL));
-    
-    for (i = 0; i < vertices; i++) {
-        size[i] = rand() % edges;
-        for (j = 0; j < size[i]; j++) {
-            graph[i][j] = rand() % vertices;
-        }
+    visited[vertex] += 1; 
+    q.push_back(vertex);
+            
+    while (!q.empty()) {
+		vertex = q.front();
+		q.pop_front();
+		ilimit = size[vertex]; 
+	   	for (j = 0; j < ilimit; j++) {
+	            next_vertex = graph[vertex][j];
+		    if (!visited[next_vertex]) {
+		        visited[next_vertex] += 1;
+		        q.push_back(next_vertex); 
+			}
+		}
     }
 }
 
 
-void populate_known(int **graph, int* size, const int vertices, const int edges) {
-    int i, j;
-
-    for (i = 0; i < vertices; i++) {
-        size[i] = i % edges;
-        for (j = 0; j < size[i]; j++) {
-            graph[i][j] = j % vertices;
+//Optimized verion 1: Inner loop unrolled by a factor of 4 and multiple accumulators
+void bfs_opt(int **graph, int *size, int *visited, int vertex) {
+    deque<int> q;
+    int j, ilimit, next_vertex0, next_vertex1, next_vertex2, next_vertex3;
+       
+    visited[vertex] += 1;
+    q.push_back(vertex);
+ 
+    while (!q.empty()) {
+       vertex = q.front();
+       q.pop_front();
+       ilimit = size[vertex] - 3;
+       for (j = 0; j < ilimit; j += 4) {
+           next_vertex0 = graph[vertex][j];
+           next_vertex1 = graph[vertex][j+1];
+           next_vertex2 = graph[vertex][j+2];
+           next_vertex3 = graph[vertex][j+3];
+           if (!visited[next_vertex0]) {
+               visited[next_vertex0] += 1;
+               q.push_back(next_vertex0);
+           }
+           if (!visited[next_vertex1]) {
+               visited[next_vertex1] += 1;
+               q.push_back(next_vertex1);
+           }
+           if (!visited[next_vertex2]) {
+               visited[next_vertex2] += 1;
+               q.push_back(next_vertex2);
+           }
+           if (!visited[next_vertex3]) {
+               visited[next_vertex3] += 1;
+               q.push_back(next_vertex3);
+            }
+        }
+        ilimit = size[vertex];
+        for (j; j < ilimit; j++) {
+            next_vertex0 = graph[vertex][j];
+            if (!visited[next_vertex0]) {
+                visited[next_vertex0] += 1;
+                q.push_back(next_vertex0);
+            }
         }
     }
 }
@@ -59,6 +94,7 @@ void printGraph(int **graph) {
     }
 }
 
+/*
 int main() {
     int i;
 
@@ -98,33 +134,13 @@ int main() {
 	long ms = (elapsedTime.tv_sec * 1000) + (elapsedTime.tv_nsec / 1.0e6);		
  	printf("Time: %ld (msec)\n", ms);
  	*/
+ 	/*
  	double testTime = timeInSeconds(&time2)-timeInSeconds(&time1);
     printf("Milliseconds: %lf\n", testTime * 1000.0);
 
 	return 0;
 }
-
-void bfs(int** graph, int *size, int vertex, int *visited) {
-	// double-ended queue
-	deque<int> q;
-
-	visited[vertex] = 1;
-	q.push_back(vertex);
-
-	int i;
-
-	while (!q.empty()) {
-		vertex = q.front();
-		q.pop_front();
-
-		for (i = 0; i < size[vertex]; i++) {
-			if (!visited[graph[vertex][i]]) {
-				visited[graph[vertex][i]] = 1;
-				q.push_back(graph[vertex][i]);
-			}
-		}
-	}
-}
+*/
 
 struct timespec diff(struct timespec start, struct timespec end) {
 	struct timespec temp;

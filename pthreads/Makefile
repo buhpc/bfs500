@@ -1,13 +1,13 @@
 .SUFIXES:
 .SUFIXES: .o .cpp
 
-TARGET = bfs_serial
-C_SOURCES = bfs_serial.cpp bfs_main.cpp
-C_OBJS = bfs_serial.o bfs_main.o
-MY_INCLUDES = bfs_serial.h bfs_main.cpp
+TARGET = bfs_pthread
+C_SOURCES = bfs_pthread.cpp
+C_OBJS = bfs_pthread.o
+MY_INCLUDES = bfs_pthread.h
 
 CCX = g++
-CXXFLAGS = -g -Wall -lrt -std=c++0x -O3
+CXXFLAGS = -g -lpthread -Wall -lrt -std=c++0x -O3
 
 all: $(TARGET)
 .o:.cpp $(MY_INCLUDES) 
