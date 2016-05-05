@@ -43,6 +43,8 @@ int main() {
 
 	int size[VERTICES] = {};
 
+    int *visited = new int[VERTICES];
+
     // Load the graph
     old_populate_random(graph, size, VERTICES, EDGES);
     //populate_known(graph, size, VERTICES, EDGES);

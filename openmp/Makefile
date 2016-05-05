@@ -8,7 +8,7 @@ C_OBJS     =  bfs_omp.o
 MY_INCLUDES =  bfs_omp.h
 
 CCX = g++
-CXXFLAGS = -O3 -g -Wall -std=c++0x -lrt -fopenmp
+CXXFLAGS = -g -Wall -std=c++0x -lrt -fopenmp
 
 #============================================================
 all: $(TARGET)
