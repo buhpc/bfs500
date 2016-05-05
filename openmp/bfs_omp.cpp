@@ -51,7 +51,7 @@ int main() {
 
     clock_gettime(CLOCK_MONOTONIC, &time1);
     // clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
-    for (i = 0 < i < VERTICES; i++) {
+    for (i = 0; < i < VERTICES; i++) {
         if (!visited[i]) {
             bfs(graph, size, visited, STARTV);
         }
