@@ -111,11 +111,11 @@ int main() {
 	cudaEventRecord(start1, 0);
 
 	int vertex;
-	// for (vertex=0; vertex < VERTICES; vertex++) {
-		// if (!h_graph_visited[vertex]) {   		
+	for (vertex=0; vertex < VERTICES; vertex++) {
+		if (!h_graph_visited[vertex]) {   		
 			bfs(graph_nodes,graph_edge,vertex,h_graph_visited);	
-		// }
-	// }
+		}
+	}
 
 	// Stop and destroy the timer
 	cudaEventRecord(stop1,0);
@@ -212,7 +212,7 @@ int main() {
 	printf("\nGPU time: %f (msec)\n", elapsed_gpu);
 	cudaEventDestroy(start);
 	cudaEventDestroy(stop);
-
+	printf("\nTotal time: %f (msec)\n", elapsed_gpu + elapsed_gpu1);
 	printf("Kernel executed: %d times\n",k); 
 		
 	// Cleanup memory
