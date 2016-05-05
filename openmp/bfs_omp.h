@@ -10,4 +10,6 @@ struct timespec time1, time2, elapsedTime;
 
 void populate_known(int **graph, int *size, const int vertices, const int edges);
 void populate_random(int **graph, int *size, const int vertices, const int edges);
+void old_populate_random(int **graph, int *size, const int vertices, const int edges);
+
 #endif

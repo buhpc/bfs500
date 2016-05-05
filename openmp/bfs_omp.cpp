@@ -12,7 +12,7 @@
 
 #define GIG 10e9
 #define CPG 2.90            
-#define NUM_THREADS 8 
+#define NUM_THREADS 4 
 
 #include "bfs_omp.h"
 
@@ -44,7 +44,7 @@ int main() {
 	int size[VERTICES] = {};
 
     // Load the graph
-    populate_random(graph, size, VERTICES, EDGES);
+    old_populate_random(graph, size, VERTICES, EDGES);
     //populate_known(graph, size, VERTICES, EDGES);
 
     clock_gettime(CLOCK_MONOTONIC, &time1);
@@ -141,6 +141,17 @@ void populate_random(int **graph, int *size, const int vertices, const int edges
     }
 }
 
+void old_populate_random(int **graph, int *size, const int vertices, const int edges) {
+    int i, j;
+    srand(time(NULL));
+
+    for (i = 0; i < vertices; i++) {
+        size[i] = rand() % edges;
+        for (j = 0; j < size[i]; j++) {
+            graph[i][j] = rand() % vertices;
+        }
+    }
+}
 
 void populate_known(int **graph, int* size, const int vertices, const int edges) {
     int i, j;
