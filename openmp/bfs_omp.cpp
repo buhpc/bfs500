@@ -63,10 +63,11 @@ int main() {
 	int *visited = new int[VERTICES];
 
 	// Load the graph
-        //populate_random(graph, size, VERTICES, EDGES);
+        // populate_random(graph, size, VERTICES, EDGES);
         populate_known(graph, size, VERTICES, EDGES);
 
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
+    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
+    clock_gettime(CLOCK_MONOTONIC, &time3);
 
 	// Breadth first search
 	for (i = 0; i < VERTICES; i++) {
@@ -75,12 +76,15 @@ int main() {
 		}
 	}
 
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time2);
+    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time2);
+    clock_gettime(CLOCK_MONOTONIC, &time4);
 
 	elapsedTime = diff(time1, time2);
 
 	cout << "OpenMP BFS" << endl;
 	printf("CPE: %ld\n", (long int)((double)(CPG) * (double)(GIG * elapsedTime.tv_sec + elapsedTime.tv_nsec)));
+    double testTime = timeInSeconds(&time4)-timeInSeconds(&time3);
+    printf("Milliseconds: %lf\n", testTime * 1000.0);
 
 	return 0;
 }
@@ -123,4 +127,9 @@ struct timespec diff(struct timespec start, struct timespec end) {
 		temp.tv_nsec = end.tv_nsec - start.tv_nsec;
 	}
 	return temp;
+}
+
+double timeInSeconds(struct timespec *t) {
+    // a timespec has integer values for seconds and nano seconds
+    return (t->tv_sec + 1.0e-9 * (t->tv_nsec));
 }
