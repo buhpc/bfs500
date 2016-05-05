@@ -44,5 +44,7 @@ __global__ void Kernel2( bool* g_graph_mask, bool *g_updating_graph_mask, bool* 
 }
 
 void bfs(Node* graph_nodes, int* graph_edge, int vertex, bool* visited);
+void populate_random(Node* graph_nodes, int* graph_edge, bool *graph_mask, bool *updating_graph_mask, bool *graph_visited, bool *h_graph_visited);
+void populate_known(Node* graph_nodes, int* graph_edge, bool *graph_mask, bool *updating_graph_mask, bool *graph_visited, bool *h_graph_visited);
 
 #endif

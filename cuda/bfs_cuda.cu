@@ -193,6 +193,7 @@ int main() {
 
 void populate_random(Node* graph_nodes, int* graph_edge, bool *graph_mask, bool *updating_graph_mask, bool *graph_visited, bool *h_graph_visited) {
 	int i = 0;
+	int j = 0;
 	int len;
 
 	for (i = 0; i < VERTICES; i++) {
@@ -230,6 +231,10 @@ void populate_random(Node* graph_nodes, int* graph_edge, bool *graph_mask, bool 
 }
 
 void populate_known(Node* graph_nodes, int* graph_edge, bool *graph_mask, bool *updating_graph_mask, bool *graph_visited, bool *h_graph_visited) {
+		int i = 0;
+	int j = 0;
+	int len;
+
 	for (i = 0; i < VERTICES; i++) {
 		// GPU transfer
 		graph_nodes[i].no_of_edges = (rand() % (EDGES)) + 1;
