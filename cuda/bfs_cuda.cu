@@ -66,8 +66,8 @@ int main() {
 
 	for (i = 0; i < VERTICES; i++) {
 		// GPU transfer
+		// graph_nodes[i].no_of_edges = (rand() % (EDGES)) + 1;
 		graph_nodes[i].no_of_edges = VERTICES;
-		graph_edge[i] = i;
 
 		if (i == 0) {
 			graph_nodes[i].start= i;
@@ -86,6 +86,8 @@ int main() {
 				exit(1);
 			}
 		}
+
+		graph_edge[i] = i;
 		
 		// printf("%d:\t", i);
 		graph_mask[i] = false;
@@ -93,7 +95,8 @@ int main() {
 		graph_visited[i] = false;
 		h_graph_visited[i] = false;
 		for (j = graph_nodes[i].start; j < (graph_nodes[i].no_of_edges+graph_nodes[i].start); j++) {
-			graph_edge[j] = (j + i ) % VERTICES;
+			// graph_edge[j] = rand() % VERTICES;
+			graph_edge[j] = (j + i) % VERTICES;
 			// printf("%d, ", graph_edge[j]);
 		}
 	}
