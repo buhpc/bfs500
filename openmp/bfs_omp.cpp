@@ -43,6 +43,9 @@ int main() {
 
 	int size[VERTICES] = {};
 
+    // visited contains whether a vertex has been visited
+    int *visited = new int[VERTICES];
+
     // Load the graph
     populate_random(graph, size, VERTICES, EDGES);
     //populate_known(graph, size, VERTICES, EDGES);

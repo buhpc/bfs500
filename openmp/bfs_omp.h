@@ -1,7 +1,7 @@
 #ifndef BFS_OMP_H
 #define BFS_OMP_H
 
-void bfs(int** graph, int *size, int vertex, int *visited);
+void bfs(int** graph, int *size, int *visited, int vertex);
 void printGraph(int **graph);
 
 double timeInSeconds(struct timespec *t);
